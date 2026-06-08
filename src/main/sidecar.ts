@@ -12,6 +12,7 @@ type Pending = {
 type SidecarMessage = {
   id?: string;
   type?: string;
+  event?: string;
   ok?: boolean;
   data?: unknown;
   error?: string;
@@ -21,6 +22,7 @@ export class SidecarClient {
   private proc: ChildProcessWithoutNullStreams | null = null;
   private pending = new Map<string, Pending>();
   private progressCallbacks = new Map<string, (data: unknown) => void>();
+  private eventHandler: ((event: string, data: unknown) => void) | null = null;
   private buffer = "";
   private restartCount = 0;
   private lastRestart = 0;
@@ -33,6 +35,10 @@ export class SidecarClient {
       ? process.resourcesPath
       : path.resolve(app.getAppPath());
     this.spawnProcess();
+  }
+
+  onEvent(handler: (event: string, data: unknown) => void): void {
+    this.eventHandler = handler;
   }
 
   private sidecarPath(): string {
@@ -127,6 +133,10 @@ export class SidecarClient {
         if (msg.type === "progress" && msg.id) {
           const onProgress = this.progressCallbacks.get(msg.id);
           onProgress?.(msg.data ?? {});
+          continue;
+        }
+        if (msg.type === "event" && msg.event) {
+          this.eventHandler?.(msg.event, msg.data ?? {});
           continue;
         }
         if (!msg.id) {

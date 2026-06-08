@@ -9,3 +9,4 @@ data/quarantine/
 !logs/.gitkeep
 !quarantine/.gitkeep
 .DS_Store
+*.yar.bak

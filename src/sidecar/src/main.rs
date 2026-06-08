@@ -1,12 +1,20 @@
 mod admin;
 mod cleaner;
+mod events;
 mod log_util;
 mod memory;
+mod network;
 mod optimizer;
 mod protocol;
+mod realtime;
+mod rules_updater;
+mod scan_engine;
 mod scanner;
+mod schedule;
+mod settings;
 mod startup;
 mod tasks;
+mod threat_history;
 mod undo;
 
 use protocol::{Request, Response};
@@ -17,7 +25,16 @@ fn main() {
         .map(PathBuf::from)
         .unwrap_or_else(|_| PathBuf::from("."));
     log_util::init(&data_dir);
-    log_util::log_info("Sentinel Shield sidecar started");
+    log_util::log_info("Sentinel Shield sidecar started (Stage 2)");
+
+    schedule::start_worker(data_dir.clone());
+
+    match rules_updater::update_on_launch(&data_dir) {
+        Ok(msg) => log_util::log_info(&msg),
+        Err(e) => log_util::log_error(&format!("Rules update on launch: {e}")),
+    }
+
+    realtime::auto_start_if_enabled(&data_dir);
 
     let stdin = std::io::stdin();
     for line in stdin.lines().flatten() {
@@ -45,6 +62,32 @@ fn handle(data_dir: &std::path::Path, req: Request) -> Response {
         "is_admin" => admin::status(req.id),
         "scan" => scanner::scan(data_dir, req.id, &req.params),
         "quarantine" => scanner::quarantine(data_dir, req.id, &req.params),
+        "realtime_start" => realtime::start(data_dir, req.id),
+        "realtime_stop" => realtime::stop(data_dir, req.id),
+        "realtime_status" => realtime::status(data_dir, req.id),
+        "schedule_get" => schedule::get_settings(data_dir, req.id),
+        "schedule_set" => schedule::set_settings(data_dir, req.id, &req.params),
+        "network_scan" => network::scan(data_dir, req.id),
+        "rules_update" => rules_updater::update(data_dir, req.id),
+        "threat_history_list" => threat_history::list(data_dir, req.id, &req.params),
+        "threat_history_clear" => threat_history::clear(data_dir, req.id),
+        "settings_get" => {
+            let s = settings::load(data_dir);
+            Response::ok(req.id, serde_json::json!(s))
+        }
+        "settings_set" => {
+            let mut s = settings::load(data_dir);
+            if let Some(url) = req.params.get("rules_url").and_then(|v| v.as_str()) {
+                s.rules_url = url.to_string();
+            }
+            if let Some(enabled) = req.params.get("realtime_enabled").and_then(|v| v.as_bool()) {
+                s.realtime_enabled = enabled;
+            }
+            match settings::save(data_dir, &s) {
+                Ok(()) => Response::ok(req.id, serde_json::json!({ "message": "Settings saved." })),
+                Err(e) => Response::err(req.id, &e),
+            }
+        }
         "cleaner_preview" => cleaner::preview(data_dir, req.id),
         "cleaner_run" => cleaner::run(data_dir, req.id, &req.params),
         "memory_status" => memory::status(req.id),

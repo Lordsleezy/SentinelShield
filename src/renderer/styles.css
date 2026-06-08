@@ -42,6 +42,22 @@ body {
 
 .header {
   padding: 1.5rem 2rem 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.senior-toggle {
+  min-height: 40px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  white-space: nowrap;
 }
 
 .header h1 {
@@ -84,10 +100,13 @@ body {
   gap: 0.5rem;
   padding: 1rem 2rem;
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex-wrap: wrap;
 }
 
 .tab {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 5.5rem;
   min-height: var(--btn-min-height);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -293,6 +312,219 @@ body {
 .progress-file span {
   color: var(--text);
   word-break: break-all;
+}
+
+.threat-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 2rem 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #3b1212;
+  border: 1px solid #7f1d1d;
+  border-radius: 8px;
+  color: #fecaca;
+}
+
+.threat-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.care-btn {
+  min-height: var(--btn-min-height);
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  background: #7c3aed;
+  color: #fff;
+  font-size: var(--font-base);
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 320px;
+}
+
+.care-btn:hover {
+  background: #6d28d9;
+}
+
+.error-actions .care-btn {
+  margin-bottom: 0.5rem;
+}
+
+/* Senior friendly mode */
+.senior-mode {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.senior-header {
+  padding: 2rem;
+  text-align: center;
+}
+
+.senior-header h1 {
+  font-size: 42px;
+  margin: 0 0 0.5rem;
+}
+
+.senior-header p {
+  font-size: 24px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.senior-switch {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.senior-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.senior-scan-btn {
+  width: min(100%, 420px);
+  min-height: 88px;
+  font-size: 32px;
+  font-weight: 700;
+  border: none;
+  border-radius: 16px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.senior-scan-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.senior-status {
+  font-size: 26px;
+  text-align: center;
+  max-width: 560px;
+  line-height: 1.5;
+}
+
+.senior-help {
+  text-align: center;
+  max-width: 520px;
+}
+
+.senior-help p {
+  font-size: 22px;
+  margin-bottom: 1rem;
+}
+
+.senior-care-btn {
+  width: 100%;
+  max-width: 420px;
+  min-height: 72px;
+  font-size: 22px;
+}
+
+.status-pill {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.status-pill.active {
+  background: #14532d;
+  color: #bbf7d0;
+}
+
+.section-heading {
+  margin-top: 2rem;
+  margin-bottom: 0.25rem;
+  font-size: 22px;
+}
+
+.schedule-time {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.schedule-time label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 16px;
+}
+
+.schedule-time input {
+  width: 100px;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.day-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.day-btn {
+  min-height: 36px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.day-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.button-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.button-row .secondary-btn {
+  max-width: 200px;
+}
+
+.history-list {
+  margin-top: 1rem;
+}
+
+.history-item .history-time {
+  font-size: 14px;
+  color: var(--muted);
 }
 
 .checklist {

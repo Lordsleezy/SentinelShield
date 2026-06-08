@@ -1,11 +1,113 @@
-# Sentinel Shield — Stage 1 Debug Progress
+# Sentinel Shield — Development Progress
 
 **Date:** 2026-06-08  
-**Status:** Stage 1 stable — fixes applied, Documents scan verified, installer packaged, CI configured.
+**Status:** Stage 1 complete. **Stage 2 complete.** Stage 3 in progress — Sentinel Care escalation and senior friendly mode shipped; Android companion and app auto-update scoped.
 
 ---
 
-## Latest Session Summary
+## Stage 3 Summary (In Progress)
+
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 1 | Sentinel Care integration | ✅ | `EscalateCareButton` opens `https://care.sentinelprime.org` via `shield:openSentinelCare` IPC |
+| 2 | Senior friendly mode | ✅ | `SeniorMode.tsx` — large text, single **Scan Now**, care escalation on threats/failures |
+| 3 | Android companion app | 📋 Scoped | Spam call blocker, app permission auditor, basic cleaner (not started) |
+| 4 | App auto-update | 📋 Scoped | Self-update for Electron app (YARA rules updater already exists) |
+
+### Sentinel Care integration
+
+- **When shown:** scan failures, threats Shield cannot auto-fix, real-time `threat_detected` banner, Protection tab alerts
+- **IPC:** `shield:openSentinelCare` → `shell.openExternal("https://care.sentinelprime.org")`
+- **Files:** `EscalateCareButton.tsx`, `index.ts`, `preload.ts`, `api.ts`, `ScannerTab.tsx`, `ProtectionTab.tsx`, `App.tsx`, `SeniorMode.tsx`
+
+### Senior friendly mode
+
+- Toggle **Simple mode** in standard header (persisted in `localStorage`)
+- Hides all tabs; one large **Scan Now** button with plain-language status
+- **Switch to full mode** returns to 7-tab UI
+- Larger typography via `.senior-mode` CSS classes
+
+---
+
+## Stage 2 Summary (Complete)
+
+| # | Feature | Status | Key files |
+|---|---------|--------|-----------|
+| 1 | Real-time protection | ✅ | `realtime.rs`, `ProtectionTab.tsx` |
+| 2 | Scheduled scans | ✅ | `schedule.rs`, `ProtectionTab.tsx` |
+| 3 | Network scanner | ✅ | `network.rs`, `NetworkTab.tsx` |
+| 4 | YARA rule auto-updater | ✅ | `rules_updater.rs` (runs on sidecar launch) |
+| 5 | Threat history log | ✅ | `threat_history.rs`, `HistoryTab.tsx` |
+
+### New sidecar commands
+
+| Command | Purpose |
+|---------|---------|
+| `realtime_start` / `realtime_stop` / `realtime_status` | Background folder watcher + alerts |
+| `schedule_get` / `schedule_set` | Configurable scan schedule (hour/minute/days) |
+| `network_scan` | Wi-Fi devices, rogue detection, traffic warnings |
+| `rules_update` | Manual YARA rules fetch (also runs on launch) |
+| `threat_history_list` / `threat_history_clear` | Persistent detection log |
+| `settings_get` / `settings_set` | `settings.json` persistence |
+
+### New event types (stdout → `shield:event` IPC)
+
+| Event | When |
+|-------|------|
+| `threat_detected` | Real-time or scheduled scan finds a threat |
+| `scheduled_scan_complete` | Background scheduled scan finishes |
+| `realtime_started` | Real-time watcher activated |
+
+### Architecture additions
+
+- **`scan_engine.rs`** — shared threat analysis (scanner, realtime, schedule)
+- **`settings.rs`** — `{dataDir}/settings.json` (realtime, schedule, rules URL, known devices)
+- **`threats.jsonl`** — append-only detection history in data dir
+- **`events.rs`** — unsolicited sidecar → renderer notifications
+- **UI tabs:** Protection, Network, History (+ global threat banner in `App.tsx`)
+
+### Stage 2 verification (sidecar CLI)
+
+```
+ping                  → ready
+realtime_status       → active:false, 4 watch paths
+schedule_get          → default 02:00 daily (disabled)
+network_scan          → 11 devices, rogue_count:2 (unknown LAN hosts; multicast filtered)
+threat_history_list   → 0 records (clean test)
+```
+
+Rules updater runs automatically on sidecar start (fetches from GitHub `rules/starter.yar`).
+
+### Real-time protection behavior
+
+- Watches: Downloads, Desktop, Documents, `%TEMP%` (recursive, depth-limited skips)
+- Uses `notify` + 2s debounce — scans new/changed files only
+- On detection: records to `threats.jsonl`, emits `threat_detected` event, **does not quarantine**
+- Toggle via Protection tab; persisted in `settings.json`
+
+### Scheduled scan behavior
+
+- Background worker checks every 30s against saved schedule
+- Runs full scan silently (report-only, same rules as manual scan)
+- Records detections to threat history; emits events
+- Default: disabled, 02:00, all days
+
+### Network scanner behavior
+
+- Reads Wi-Fi SSID (`netsh wlan`), local IP (`ipconfig`), ARP table (`arp -a`)
+- Flags unknown dynamic LAN devices (excludes gateway, multicast/broadcast)
+- Checks `netstat -an` for suspicious port activity (4444, 31337, etc.)
+- Known devices list in settings (future UI — API ready)
+
+### Threat history
+
+- Sources: `manual`, `realtime`, `scheduled`
+- Actions: `reported`, `quarantined`
+- All scan paths now write to history automatically
+
+---
+
+## Stage 1 Summary (Complete)
 
 | Task | Result |
 |------|--------|
@@ -106,9 +208,11 @@ On ARM64 Windows host, first `npm run dist` produced an arm64 installer. Script 
 | Runner | `windows-latest` |
 | Node | 18 |
 | Rust | `dtolnay/rust-toolchain@stable` (x86_64-pc-windows-msvc) |
-| Build | `npm ci` → `npm run build` → `electron-builder --win nsis --x64` |
+| Build | `npm ci` → `npm run build:sidecar` → renderer + main → verify sidecar → `electron-builder --win nsis --x64` |
 | Artifacts | Upload `release/*.exe` as workflow artifact |
 | Release | `softprops/action-gh-release@v2` — tag `v<run_number>`, attaches installer |
+
+Stage 2 sidecar modules (`realtime`, `schedule`, `network`, `rules_updater`, etc.) are compiled in CI before packaging so the installer includes full protection features.
 
 ---
 
@@ -157,6 +261,7 @@ npm run dev
 
 ## Next Steps
 
-1. Monitor first GitHub Actions run on push to `main`
-2. Test installed `.exe` on a clean Windows x64 machine
-3. Consider adding scan scope selector in UI (Downloads only, Documents only, etc.)
+1. **Stage 3:** App auto-update (`electron-updater` or similar) — separate from YARA `rules_updater`
+2. **Stage 3:** Android companion app — spam blocker, permission auditor, cleaner
+3. Test installed `.exe` on a clean Windows x64 machine
+4. Consider scan scope selector in UI (Downloads only, Documents only, etc.)

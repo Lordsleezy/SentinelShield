@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import path from "path";
 import { SidecarClient } from "./sidecar";
 import { appendLog, getDataDir, initLogger, openLogInNotepad } from "./logger";
@@ -38,6 +38,12 @@ app.whenReady().then(() => {
   initLogger(dataDir);
   appendLog("Sentinel Shield starting");
   sidecar.start(dataDir);
+  sidecar.onEvent((event, data) => {
+    appendLog(`Sidecar event: ${event}`);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("shield:event", { event, data });
+    }
+  });
   createWindow();
 
   app.on("activate", () => {
@@ -83,4 +89,8 @@ ipcMain.handle("shield:isAdmin", async () => {
 
 ipcMain.handle("shield:openLog", () => {
   openLogInNotepad();
+});
+
+ipcMain.handle("shield:openSentinelCare", () => {
+  void shell.openExternal("https://care.sentinelprime.org");
 });

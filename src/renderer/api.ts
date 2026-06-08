@@ -7,6 +7,11 @@ export type ScanProgress = {
   eta_seconds: number;
 };
 
+export type ShieldEvent = {
+  event: string;
+  data: Record<string, unknown>;
+};
+
 export async function shieldRequest<T>(
   cmd: string,
   params: Record<string, unknown> = {},
@@ -25,6 +30,12 @@ export async function shieldRequest<T>(
   }
 }
 
+export function subscribeEvents(
+  callback: (payload: ShieldEvent) => void
+): () => void {
+  return window.shield.onEvent(callback);
+}
+
 export async function checkAdmin(): Promise<boolean> {
   try {
     return await window.shield.isAdmin();
@@ -35,6 +46,10 @@ export async function checkAdmin(): Promise<boolean> {
 
 export function openLog(): void {
   void window.shield.openLog();
+}
+
+export function openSentinelCare(): void {
+  void window.shield.openSentinelCare();
 }
 
 export { GENERIC_ERROR };

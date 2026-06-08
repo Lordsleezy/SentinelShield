@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { EscalateCareButton } from "../components/EscalateCareButton";
 import { GENERIC_ERROR, openLog, shieldRequest, type ScanProgress } from "../api";
 
 type ScanItem = {
@@ -137,6 +138,7 @@ export function ScannerTab() {
 
       {failed && (
         <div className="error-actions">
+          <EscalateCareButton />
           <button type="button" className="link-btn" onClick={openLog}>
             View Log
           </button>
@@ -146,6 +148,8 @@ export function ScannerTab() {
       {result && result.items.length > 0 && (
         <div className="result-card">
           <p>{result.message}</p>
+          <p className="tab-desc">If you're not sure what to do, our care team can help.</p>
+          <EscalateCareButton />
           <button
             type="button"
             className="details-toggle"
