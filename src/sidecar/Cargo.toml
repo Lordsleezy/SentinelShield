@@ -1,0 +1,27 @@
+[package]
+name = "sentinel_shield_core"
+version = "0.1.0"
+edition = "2021"
+license = "Proprietary"
+
+[[bin]]
+name = "sentinel_shield_core"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+yara = { version = "0.31", default-features = false, features = ["bundled-4_5_5", "vendored"] }
+walkdir = "2"
+sysinfo = "0.31"
+infer = "0.16"
+sha2 = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = [
+  "memoryapi", "processthreadsapi", "psapi", "winbase", "winnt",
+  "winsvc", "winreg", "shellapi", "shlobj", "sysinfoapi",
+  "powerbase", "powersetting", "powrprof", "securitybaseapi", "handleapi"
+] }

@@ -1,0 +1,33 @@
+{
+  "name": "sentinel-shield",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sentinel Shield — simple Windows protection for everyone",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev:renderer\" \"npm run dev:electron\"",
+    "dev:renderer": "vite",
+    "dev:electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:sidecar": "powershell -ExecutionPolicy Bypass -File scripts/build-sidecar.ps1",
+    "install:arm64-msvc": "powershell -ExecutionPolicy Bypass -File scripts/install-arm64-msvc.ps1",
+    "build": "npm run build:renderer && npm run build:main && npm run build:sidecar",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^9.0.0",
+    "cross-env": "^7.0.3",
+    "electron": "^33.0.0",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.0",
+    "wait-on": "^8.0.0"
+  }
+}
