@@ -43,7 +43,8 @@ fn handle(data_dir: &std::path::Path, req: Request) -> Response {
     match req.cmd.as_str() {
         "ping" => Response::ok(req.id, serde_json::json!({ "status": "ready" })),
         "is_admin" => admin::status(req.id),
-        "scan" => scanner::scan(data_dir, req.id),
+        "scan" => scanner::scan(data_dir, req.id, &req.params),
+        "quarantine" => scanner::quarantine(data_dir, req.id, &req.params),
         "cleaner_preview" => cleaner::preview(data_dir, req.id),
         "cleaner_run" => cleaner::run(data_dir, req.id, &req.params),
         "memory_status" => memory::status(req.id),

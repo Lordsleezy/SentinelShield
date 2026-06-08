@@ -56,7 +56,19 @@ fn read_run_key(hive: &str, subkey: &str) -> Vec<(String, String, String)> {
                 break;
             }
             let name = String::from_utf16_lossy(&name_buf[..name_len as usize]);
-            let value = String::from_utf8_lossy(&data_buf[..data_len as usize]).to_string();
+            let value = if data_type == 1 || data_type == 2 {
+                // REG_SZ / REG_EXPAND_SZ are UTF-16 LE
+                let wide_len = (data_len as usize) / 2;
+                let wide: Vec<u16> = data_buf[..data_len as usize]
+                    .chunks_exact(2)
+                    .map(|c| u16::from_le_bytes([c[0], c[1]]))
+                    .take(wide_len)
+                    .collect();
+                let end = wide.iter().position(|&c| c == 0).unwrap_or(wide.len());
+                String::from_utf16_lossy(&wide[..end])
+            } else {
+                String::from_utf8_lossy(&data_buf[..data_len as usize]).to_string()
+            };
             entries.push((name, value, hive.to_string()));
             index += 1;
         }
@@ -190,7 +202,7 @@ fn disable_startup_entry(source: &str, name: &str, value: &str) -> Result<(), St
             0,
             REG_SZ,
             value_w.as_ptr() as *const u8,
-            (value.len() + 1) as u32,
+            (value_w.len() * 2) as u32,
         );
         RegCloseKey(disabled_key);
 

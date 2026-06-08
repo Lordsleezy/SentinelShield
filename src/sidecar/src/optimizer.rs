@@ -314,14 +314,14 @@ fn apply_item(data_dir: &std::path::Path, item_id: &str) -> Result<String, Strin
         "bing_search" => {
             let old = set_reg_dword(
                 "HKCU",
-                r"Software\Policies\Microsoft\Windows\Explorer",
-                "DisableSearchBoxSuggestions",
-                1,
+                r"Software\Microsoft\Windows\CurrentVersion\Search",
+                "BingSearchEnabled",
+                0,
             )?;
             log_util::log_change(
                 "bing_search",
                 "registry",
-                &format!("restore DisableSearchBoxSuggestions={old}"),
+                &format!("restore BingSearchEnabled={old}"),
             );
             Ok("Bing Search in Start Menu".to_string())
         }

@@ -251,6 +251,50 @@ body {
   font-size: 16px;
 }
 
+.scan-item .quarantine-btn {
+  margin-top: 0.75rem;
+  max-width: 280px;
+}
+
+.quarantine-done {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--success) !important;
+  font-size: 16px !important;
+}
+
+.scan-progress {
+  margin-top: 1rem;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0.75rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.progress-stats,
+.progress-file,
+.progress-eta {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.progress-file span {
+  color: var(--text);
+  word-break: break-all;
+}
+
 .checklist {
   width: 100%;
   display: flex;

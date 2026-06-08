@@ -5,6 +5,13 @@ contextBridge.exposeInMainWorld("shield", {
     ipcRenderer.invoke("shield:request", cmd, params ?? {}),
   isAdmin: () => ipcRenderer.invoke("shield:isAdmin") as Promise<boolean>,
   openLog: () => ipcRenderer.invoke("shield:openLog") as Promise<void>,
+  onProgress: (callback: (data: unknown) => void) => {
+    const handler = (_event: unknown, data: unknown) => callback(data);
+    ipcRenderer.on("shield:progress", handler);
+    return () => {
+      ipcRenderer.removeListener("shield:progress", handler);
+    };
+  },
 });
 
 export {};

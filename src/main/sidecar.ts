@@ -9,9 +9,18 @@ type Pending = {
   reject: (reason?: unknown) => void;
 };
 
+type SidecarMessage = {
+  id?: string;
+  type?: string;
+  ok?: boolean;
+  data?: unknown;
+  error?: string;
+};
+
 export class SidecarClient {
   private proc: ChildProcessWithoutNullStreams | null = null;
   private pending = new Map<string, Pending>();
+  private progressCallbacks = new Map<string, (data: unknown) => void>();
   private buffer = "";
   private restartCount = 0;
   private lastRestart = 0;
@@ -101,6 +110,7 @@ export class SidecarClient {
       pending.reject(reason);
     }
     this.pending.clear();
+    this.progressCallbacks.clear();
   }
 
   private onData(chunk: string): void {
@@ -113,12 +123,12 @@ export class SidecarClient {
         continue;
       }
       try {
-        const msg = JSON.parse(trimmed) as {
-          id?: string;
-          ok?: boolean;
-          data?: unknown;
-          error?: string;
-        };
+        const msg = JSON.parse(trimmed) as SidecarMessage;
+        if (msg.type === "progress" && msg.id) {
+          const onProgress = this.progressCallbacks.get(msg.id);
+          onProgress?.(msg.data ?? {});
+          continue;
+        }
         if (!msg.id) {
           continue;
         }
@@ -127,6 +137,7 @@ export class SidecarClient {
           continue;
         }
         this.pending.delete(msg.id);
+        this.progressCallbacks.delete(msg.id);
         if (msg.ok) {
           pending.resolve(msg.data ?? {});
         } else {
@@ -139,17 +150,25 @@ export class SidecarClient {
     }
   }
 
-  request(cmd: string, params: Record<string, unknown> = {}): Promise<unknown> {
+  request(
+    cmd: string,
+    params: Record<string, unknown> = {},
+    onProgress?: (data: unknown) => void
+  ): Promise<unknown> {
     if (!this.proc?.stdin.writable) {
       return Promise.reject(new Error("Sidecar is not ready."));
     }
     const id = crypto.randomUUID();
+    if (onProgress) {
+      this.progressCallbacks.set(id, onProgress);
+    }
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
       const payload = JSON.stringify({ id, cmd, params }) + "\n";
       this.proc!.stdin.write(payload, (err) => {
         if (err) {
           this.pending.delete(id);
+          this.progressCallbacks.delete(id);
           appendLog(`Sidecar write failed: ${err.message}`);
           reject(err);
         }

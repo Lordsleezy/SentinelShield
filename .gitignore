@@ -1,8 +1,11 @@
 node_modules/
 dist/
 target/
+release/
 logs/*.log
 quarantine/*
+data/logs/
+data/quarantine/
 !logs/.gitkeep
 !quarantine/.gitkeep
 .DS_Store

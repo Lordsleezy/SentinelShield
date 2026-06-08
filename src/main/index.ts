@@ -54,14 +54,23 @@ app.on("window-all-closed", () => {
   }
 });
 
-ipcMain.handle("shield:request", async (_event, cmd: string, params: Record<string, unknown>) => {
-  try {
-    return await sidecar.request(cmd, params);
-  } catch (error) {
-    appendLog(`IPC request failed (${cmd}): ${String(error)}`);
-    throw error;
+ipcMain.handle(
+  "shield:request",
+  async (event, cmd: string, params: Record<string, unknown>) => {
+    try {
+      const onProgress =
+        cmd === "scan"
+          ? (progress: unknown) => {
+              event.sender.send("shield:progress", progress);
+            }
+          : undefined;
+      return await sidecar.request(cmd, params, onProgress);
+    } catch (error) {
+      appendLog(`IPC request failed (${cmd}): ${String(error)}`);
+      throw error;
+    }
   }
-});
+);
 
 ipcMain.handle("shield:isAdmin", async () => {
   try {

@@ -12,14 +12,8 @@ rule Double_Extension {
     meta:
         description = "File may be hiding its true type with a double extension"
         severity = "medium"
-    strings:
-        $a = ".pdf.exe" nocase
-        $b = ".doc.exe" nocase
-        $c = ".jpg.exe" nocase
-        $d = ".txt.scr" nocase
-        $e = ".png.exe" nocase
     condition:
-        any of them
+        filename matches /\.(pdf|doc|jpg|png|txt)\.(exe|scr)$/ nocase
 }
 
 rule Encoded_PowerShell {
@@ -41,7 +35,7 @@ rule WScript_Launcher {
         $wscript = "WScript.Shell" nocase
         $cscript = "CScript" nocase
     condition:
-        any of them
+        all of them
 }
 
 rule Hidden_Window_Execution {
@@ -54,28 +48,12 @@ rule Hidden_Window_Execution {
         $hidden
 }
 
-rule Suspicious_AutoRun {
-    meta:
-        description = "Startup entry that runs software automatically"
-        severity = "low"
-    strings:
-        $run = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-        $startup = "StartupApproved\\Run"
-    condition:
-        any of them
-}
-
 rule Ransomware_Extension {
     meta:
         description = "File extension often used by ransomware"
         severity = "high"
-    strings:
-        $locked = ".locked" nocase
-        $encrypted = ".encrypted" nocase
-        $crypted = ".crypted" nocase
-        $crypt = ".crypt" nocase
     condition:
-        any of them
+        filename matches /\.(locked|encrypted|crypted)$/ nocase
 }
 
 rule Keylogger_API {
