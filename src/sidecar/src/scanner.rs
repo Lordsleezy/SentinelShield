@@ -4,7 +4,7 @@ use crate::scan_engine;
 use crate::threat_history;
 use serde_json::{json, Value};
 use std::fs;
-use std::io::{self, Write};
+use crate::ipc_out;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 use uuid::Uuid;
@@ -25,20 +25,15 @@ fn emit_progress(
         0
     };
 
-    let payload = json!({
-        "type": "progress",
-        "id": request_id,
-        "data": {
+    ipc_out::send_progress(
+        request_id,
+        json!({
             "current_file": current_file,
             "files_scanned": files_scanned,
             "files_total": files_total,
             "eta_seconds": eta_seconds,
-        }
-    });
-    if let Ok(line) = serde_json::to_string(&payload) {
-        let _ = writeln!(io::stdout(), "{line}");
-        let _ = io::stdout().flush();
-    }
+        }),
+    );
 }
 
 fn scan_roots_from_params(params: &Value) -> Vec<PathBuf> {

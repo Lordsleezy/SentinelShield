@@ -56,6 +56,23 @@ export function openSentinelMarket(): void {
   void window.shield.openSentinelMarket();
 }
 
+export type SidecarStatusInfo = {
+  alive: boolean;
+  ready: boolean;
+  lastPingMs: number | null;
+  restartCount: number;
+};
+
+export async function getSidecarStatus(): Promise<SidecarStatusInfo> {
+  return (await window.shield.getSidecarStatus()) as SidecarStatusInfo;
+}
+
+export function subscribeSidecarStatus(
+  callback: (status: SidecarStatusInfo) => void
+): () => void {
+  return window.shield.onSidecarStatus((status) => callback(status as SidecarStatusInfo));
+}
+
 export type UpdateStatus =
   | { state: "idle" }
   | { state: "checking" }

@@ -82,6 +82,8 @@ const CATEGORIES: &[Category] = &[
     },
 ];
 
+const MAX_WALK_DEPTH: usize = 6;
+
 fn dir_size(path: &Path) -> u64 {
     if !path.exists() {
         return 0;
@@ -90,7 +92,11 @@ fn dir_size(path: &Path) -> u64 {
         return path.metadata().map(|m| m.len()).unwrap_or(0);
     }
     let mut total = 0u64;
-    for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
+    for entry in WalkDir::new(path)
+        .max_depth(MAX_WALK_DEPTH)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
         if entry.file_type().is_file() {
             total += entry.metadata().map(|m| m.len()).unwrap_or(0);
         }

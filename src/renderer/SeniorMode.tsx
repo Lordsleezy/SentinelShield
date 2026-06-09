@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { EscalateCareButton } from "./components/EscalateCareButton";
+import { SidecarStatusIndicator } from "./components/SidecarStatus";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { GENERIC_ERROR, shieldRequest, type ScanProgress } from "./api";
 
@@ -43,6 +44,7 @@ export function SeniorMode({ onSwitchToStandard }: { onSwitchToStandard: () => v
       <header className="senior-header">
         <h1>Sentinel Shield</h1>
         <p>We keep your computer safe.</p>
+        <SidecarStatusIndicator />
         <button type="button" className="senior-switch" onClick={onSwitchToStandard}>
           Switch to full mode
         </button>

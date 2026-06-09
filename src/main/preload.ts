@@ -7,6 +7,20 @@ contextBridge.exposeInMainWorld("shield", {
   openLog: () => ipcRenderer.invoke("shield:openLog") as Promise<void>,
   openSentinelCare: () => ipcRenderer.invoke("shield:openSentinelCare") as Promise<void>,
   openSentinelMarket: () => ipcRenderer.invoke("shield:openSentinelMarket") as Promise<void>,
+  getSidecarStatus: () =>
+    ipcRenderer.invoke("shield:getSidecarStatus") as Promise<{
+      alive: boolean;
+      ready: boolean;
+      lastPingMs: number | null;
+      restartCount: number;
+    }>,
+  onSidecarStatus: (callback: (status: unknown) => void) => {
+    const handler = (_event: unknown, status: unknown) => callback(status);
+    ipcRenderer.on("shield:sidecarStatus", handler);
+    return () => {
+      ipcRenderer.removeListener("shield:sidecarStatus", handler);
+    };
+  },
   getUpdateStatus: () =>
     ipcRenderer.invoke("shield:getUpdateStatus") as Promise<{
       state: "idle" | "checking" | "downloading" | "ready" | "error";

@@ -1,8 +1,8 @@
 # Sentinel Shield — Product Summary
 
-**Date:** 2026-06-08  
-**Version:** 0.1.1  
-**Status:** **Ready for real-device testing** — all three development stages complete.
+**Date:** 2026-06-09  
+**Version:** 0.1.2  
+**Status:** **Ready for real-device testing** — sidecar IPC hang fixed in installed builds.
 
 **Repository:** [Lordsleezy/SentinelShield](https://github.com/Lordsleezy/SentinelShield)
 
@@ -16,6 +16,29 @@ Sentinel Shield is a senior-friendly Windows protection suite: malware scanning,
 |----------|---------|----------|
 | Windows | Sentinel Shield | Root repo — Electron + React + Rust sidecar |
 | Android | Sentinel Prime Companion | `companion/` — Expo + native Kotlin module |
+
+---
+
+## Installed Build Fix — Sidecar IPC Hang (v0.1.2)
+
+**Symptom:** Scanner worked; Cleaner, Protection, Network, History, Memory, Optimizer hung on "Working..." indefinitely.
+
+**Root causes:**
+
+| # | Cause | Fix |
+|---|-------|-----|
+| 1 | **Single-threaded stdin loop** — `optimizer_list` ran 12+ PowerShell `Get-AppxPackage` calls sequentially (~minutes), blocking all other IPC commands queued behind it | Dispatch every command on a **background thread** in `main.rs` |
+| 2 | **stdout race** — schedule/realtime background threads emitted events while responses were printed, corrupting JSON lines so pending promises never resolved | New `ipc_out.rs` mutex serializes all stdout writes |
+| 3 | **`cleaner_preview` slow** — unbounded `WalkDir` on large cache dirs blocked the loop for minutes | `max_depth(6)` on directory size walks |
+| 4 | **Rules update on launch** blocked first commands | Moved `rules_updater::update_on_launch` to background thread |
+
+**Diagnostics added:**
+
+- **UI:** `SidecarStatusIndicator` — "Protection engine ready" / "starting…" / "offline"
+- **Main process:** `runDiagnostics()` logs `ping`, `memory_status`, `cleaner_preview`, `optimizer_list`, `network_scan`, `threat_history_list`, `realtime_status` on launch (see `%APPDATA%/SentinelShield/logs/shield.log`)
+- **IPC timeouts:** 90s default, 10min for scan/cleaner/network — prevents infinite "Working..."
+
+**Admin note:** Optimizer/cleaner items marked `requires_admin` show locked without elevation; commands still return data (no hang).
 
 ---
 

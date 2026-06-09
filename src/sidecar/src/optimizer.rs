@@ -484,9 +484,9 @@ fn apply_item(data_dir: &std::path::Path, item_id: &str) -> Result<String, Strin
 
 pub fn list(id: String) -> Response {
     let is_admin = admin::is_admin();
+    // Return all items immediately — per-app PowerShell detection blocked the IPC loop for minutes.
     let items: Vec<Value> = all_items()
         .into_iter()
-        .filter(|item| detect_present(item.id))
         .map(|item| {
             json!({
                 "id": item.id,

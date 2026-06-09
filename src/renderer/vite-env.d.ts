@@ -10,6 +10,8 @@ declare global {
       openLog: () => Promise<void>;
       openSentinelCare: () => Promise<void>;
       openSentinelMarket: () => Promise<void>;
+      getSidecarStatus: () => Promise<import("./api").SidecarStatusInfo>;
+      onSidecarStatus: (callback: (status: import("./api").SidecarStatusInfo) => void) => () => void;
       getUpdateStatus: () => Promise<import("./api").UpdateStatus>;
       restartToUpdate: () => Promise<void>;
       onUpdate: (callback: (status: import("./api").UpdateStatus) => void) => () => void;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { checkAdmin, subscribeEvents } from "./api";
 import { EscalateCareButton } from "./components/EscalateCareButton";
+import { SidecarStatusIndicator } from "./components/SidecarStatus";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { SeniorMode } from "./SeniorMode";
 import { ScannerTab } from "./tabs/ScannerTab";
@@ -73,13 +74,16 @@ export function App() {
           <h1>Sentinel Shield</h1>
           <p className="tagline">We keep your computer safe and tidy.</p>
         </div>
-        <button
-          type="button"
-          className="senior-toggle"
-          onClick={() => setSeniorMode(true)}
-        >
-          Simple mode
-        </button>
+        <div className="header-actions">
+          <SidecarStatusIndicator />
+          <button
+            type="button"
+            className="senior-toggle"
+            onClick={() => setSeniorMode(true)}
+          >
+            Simple mode
+          </button>
+        </div>
       </header>
 
       <UpdateBanner />

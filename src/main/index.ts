@@ -39,6 +39,11 @@ app.whenReady().then(() => {
   initLogger(dataDir);
   appendLog("Sentinel Shield starting");
   sidecar.start(dataDir);
+  sidecar.onStatus((status) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("shield:sidecarStatus", status);
+    }
+  });
   sidecar.onEvent((event, data) => {
     appendLog(`Sidecar event: ${event}`);
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -47,6 +52,10 @@ app.whenReady().then(() => {
   });
   createWindow();
   initAutoUpdater(() => mainWindow);
+
+  setTimeout(() => {
+    void sidecar.runDiagnostics();
+  }, 4000);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -100,6 +109,8 @@ ipcMain.handle("shield:openSentinelCare", () => {
 ipcMain.handle("shield:openSentinelMarket", () => {
   void shell.openExternal("https://market.sentinelprime.org");
 });
+
+ipcMain.handle("shield:getSidecarStatus", () => sidecar.getStatus());
 
 ipcMain.handle("shield:getUpdateStatus", () => getUpdateStatus());
 

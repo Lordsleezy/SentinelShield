@@ -1,14 +1,6 @@
-use serde_json::{json, Value};
-use std::io::{self, Write};
+use crate::ipc_out;
+use serde_json::Value;
 
 pub fn emit(event: &str, data: Value) {
-    let payload = json!({
-        "type": "event",
-        "event": event,
-        "data": data,
-    });
-    if let Ok(line) = serde_json::to_string(&payload) {
-        let _ = writeln!(io::stdout(), "{line}");
-        let _ = io::stdout().flush();
-    }
+    ipc_out::send_event(event, data);
 }

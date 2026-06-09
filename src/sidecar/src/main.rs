@@ -1,6 +1,7 @@
 mod admin;
 mod cleaner;
 mod events;
+mod ipc_out;
 mod log_util;
 mod memory;
 mod network;
@@ -29,10 +30,13 @@ fn main() {
 
     schedule::start_worker(data_dir.clone());
 
-    match rules_updater::update_on_launch(&data_dir) {
-        Ok(msg) => log_util::log_info(&msg),
-        Err(e) => log_util::log_error(&format!("Rules update on launch: {e}")),
-    }
+    let rules_dir = data_dir.clone();
+    std::thread::spawn(move || {
+        match rules_updater::update_on_launch(&rules_dir) {
+            Ok(msg) => log_util::log_info(&msg),
+            Err(e) => log_util::log_error(&format!("Rules update on launch: {e}")),
+        }
+    });
 
     realtime::auto_start_if_enabled(&data_dir);
 
@@ -49,10 +53,11 @@ fn main() {
                 continue;
             }
         };
-        let resp = handle(&data_dir, req);
-        if let Ok(out) = serde_json::to_string(&resp) {
-            println!("{out}");
-        }
+        let data_dir = data_dir.clone();
+        std::thread::spawn(move || {
+            let resp = handle(&data_dir, req);
+            ipc_out::send_response(&resp);
+        });
     }
 }
 
