@@ -97,6 +97,10 @@ ipcMain.handle("shield:openSentinelCare", () => {
   void shell.openExternal("https://care.sentinelprime.org");
 });
 
+ipcMain.handle("shield:openSentinelMarket", () => {
+  void shell.openExternal("https://market.sentinelprime.org");
+});
+
 ipcMain.handle("shield:getUpdateStatus", () => getUpdateStatus());
 
 ipcMain.handle("shield:restartToUpdate", () => {

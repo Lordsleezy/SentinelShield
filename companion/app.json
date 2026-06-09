@@ -31,8 +31,6 @@
     },
     "plugins": [
       "expo-router",
-      "sentinel-android",
-      "./plugins/withSentinelAndroid.js",
       [
         "expo-splash-screen",
         {

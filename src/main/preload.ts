@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld("shield", {
   isAdmin: () => ipcRenderer.invoke("shield:isAdmin") as Promise<boolean>,
   openLog: () => ipcRenderer.invoke("shield:openLog") as Promise<void>,
   openSentinelCare: () => ipcRenderer.invoke("shield:openSentinelCare") as Promise<void>,
+  openSentinelMarket: () => ipcRenderer.invoke("shield:openSentinelMarket") as Promise<void>,
   getUpdateStatus: () =>
     ipcRenderer.invoke("shield:getUpdateStatus") as Promise<{
       state: "idle" | "checking" | "downloading" | "ready" | "error";

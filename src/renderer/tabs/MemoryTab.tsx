@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ShopMarketButton } from "../components/ShopMarketButton";
 import { GENERIC_ERROR, openLog, shieldRequest } from "../api";
 
 type MemoryStatus = {
@@ -6,6 +7,8 @@ type MemoryStatus = {
   used_friendly: string;
   free_friendly: string;
   total_friendly: string;
+  recommend_hardware_upgrade?: boolean;
+  hardware_message?: string | null;
 };
 
 type MemoryFreeResult = {
@@ -13,6 +16,8 @@ type MemoryFreeResult = {
   before_pct: number;
   after_pct: number;
   freed_friendly: string;
+  recommend_hardware_upgrade?: boolean;
+  hardware_message?: string | null;
 };
 
 export function MemoryTab() {
@@ -20,10 +25,16 @@ export function MemoryTab() {
   const [status, setStatus] = useState("Checking your memory...");
   const [result, setResult] = useState<MemoryFreeResult | null>(null);
   const [failed, setFailed] = useState(false);
+  const [showMarket, setShowMarket] = useState(false);
+  const [hardwareMessage, setHardwareMessage] = useState<string | null>(null);
 
   useEffect(() => {
     shieldRequest<MemoryStatus>("memory_status")
-      .then((data) => setStatus(data.status_line))
+      .then((data) => {
+        setStatus(data.status_line);
+        setShowMarket(Boolean(data.recommend_hardware_upgrade));
+        setHardwareMessage(data.hardware_message ?? null);
+      })
       .catch(() => setStatus("Ready when you are."));
   }, []);
 
@@ -37,6 +48,8 @@ export function MemoryTab() {
       const data = await shieldRequest<MemoryFreeResult>("memory_free");
       setResult(data);
       setStatus(data.message);
+      setShowMarket(Boolean(data.recommend_hardware_upgrade));
+      setHardwareMessage(data.hardware_message ?? null);
     } catch {
       setFailed(true);
       setStatus(GENERIC_ERROR);
@@ -63,6 +76,13 @@ export function MemoryTab() {
         </div>
       ) : (
         <p className="status-line" aria-live="polite">{status}</p>
+      )}
+
+      {showMarket && (
+        <div className="hardware-card">
+          <p>{hardwareMessage ?? "A hardware upgrade or replacement may help your computer run better."}</p>
+          <ShopMarketButton />
+        </div>
       )}
 
       {failed && (

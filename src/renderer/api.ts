@@ -52,6 +52,10 @@ export function openSentinelCare(): void {
   void window.shield.openSentinelCare();
 }
 
+export function openSentinelMarket(): void {
+  void window.shield.openSentinelMarket();
+}
+
 export type UpdateStatus =
   | { state: "idle" }
   | { state: "checking" }

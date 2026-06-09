@@ -24,9 +24,29 @@ fn memory_to_gb(bytes: u64) -> String {
     log_util::format_bytes(bytes)
 }
 
+fn total_ram_gb(total: u64) -> f64 {
+    total as f64 / 1024.0 / 1024.0 / 1024.0
+}
+
+fn recommend_hardware_upgrade(total: u64, used_pct: u32) -> bool {
+    total_ram_gb(total) < 8.0 || used_pct >= 85
+}
+
+fn hardware_message(total: u64, used_pct: u32) -> Option<&'static str> {
+    if !recommend_hardware_upgrade(total, used_pct) {
+        return None;
+    }
+    if total_ram_gb(total) < 8.0 {
+        Some("Your computer has less than 8 GB of memory. A RAM upgrade or newer device may help.")
+    } else {
+        Some("Your memory is very full even after cleanup. A hardware upgrade may be worth considering.")
+    }
+}
+
 pub fn status(id: String) -> Response {
     let (total, used, available, used_pct) = read_memory();
     let status_line = format!("Your memory is {used_pct}% full");
+    let upgrade = recommend_hardware_upgrade(total, used_pct);
     Response::ok(
         id,
         json!({
@@ -35,6 +55,8 @@ pub fn status(id: String) -> Response {
             "free_friendly": memory_to_gb(available),
             "total_friendly": memory_to_gb(total),
             "status_line": status_line,
+            "recommend_hardware_upgrade": upgrade,
+            "hardware_message": hardware_message(total, used_pct),
         }),
     )
 }
@@ -139,7 +161,7 @@ pub fn free(id: String) -> Response {
         "Memory free: {before_pct}% -> {after_pct}%, freed ~{freed_bytes} bytes"
     ));
 
-    let _ = total_before;
+    let upgrade = recommend_hardware_upgrade(total_before, after_pct);
     Response::ok(
         id,
         json!({
@@ -147,6 +169,8 @@ pub fn free(id: String) -> Response {
             "after_pct": after_pct,
             "freed_friendly": freed_friendly,
             "message": message,
+            "recommend_hardware_upgrade": upgrade,
+            "hardware_message": hardware_message(total_before, after_pct),
         }),
     )
 }

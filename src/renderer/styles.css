@@ -122,6 +122,41 @@ body {
   background: #0d9488;
 }
 
+.market-btn {
+  min-height: var(--btn-min-height);
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  background: #0d9488;
+  color: #fff;
+  font-size: var(--font-base);
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 320px;
+}
+
+.market-btn:hover {
+  background: #14b8a6;
+}
+
+.hardware-card {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #0f2f2f;
+  border: 1px solid #14b8a6;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hardware-card p {
+  margin: 0;
+  color: #ccfbf1;
+  font-size: var(--font-base);
+  line-height: 1.5;
+}
+
 .banner-dismiss {
   background: transparent;
   border: 1px solid #ca8a04;
