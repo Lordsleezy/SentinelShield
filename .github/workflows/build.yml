@@ -77,7 +77,9 @@ jobs:
           Write-Host "Sidecar ready: $exe"
 
       - name: Package Windows installer (NSIS x64)
-        run: npx electron-builder --win nsis --x64
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npx electron-builder --win nsis --x64 --publish never
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
