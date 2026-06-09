@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { EscalateCareButton } from "./components/EscalateCareButton";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { GENERIC_ERROR, shieldRequest, type ScanProgress } from "./api";
 
 type ScanResult = {
@@ -46,6 +47,8 @@ export function SeniorMode({ onSwitchToStandard }: { onSwitchToStandard: () => v
           Switch to full mode
         </button>
       </header>
+
+      <UpdateBanner />
 
       <main className="senior-main">
         <button

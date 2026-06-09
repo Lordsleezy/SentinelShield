@@ -10,3 +10,7 @@ data/quarantine/
 !quarantine/.gitkeep
 .DS_Store
 *.yar.bak
+companion/node_modules/
+companion/android/
+companion/ios/
+companion/.expo/

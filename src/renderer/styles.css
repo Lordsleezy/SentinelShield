@@ -85,6 +85,43 @@ body {
   font-size: var(--font-base);
 }
 
+.update-banner {
+  margin: 0.75rem 2rem 0;
+  padding: 0.75rem 1rem;
+  background: #0f2f2f;
+  border: 1px solid #14b8a6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: var(--font-base);
+  color: #ccfbf1;
+}
+
+.update-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.update-restart-btn {
+  min-height: 36px;
+  padding: 0.4rem 0.9rem;
+  border: none;
+  border-radius: 8px;
+  background: #14b8a6;
+  color: #042f2e;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.update-restart-btn:hover {
+  background: #0d9488;
+}
+
 .banner-dismiss {
   background: transparent;
   border: 1px solid #ca8a04;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { checkAdmin, subscribeEvents } from "./api";
 import { EscalateCareButton } from "./components/EscalateCareButton";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { SeniorMode } from "./SeniorMode";
 import { ScannerTab } from "./tabs/ScannerTab";
 import { ProtectionTab } from "./tabs/ProtectionTab";
@@ -80,6 +81,8 @@ export function App() {
           Simple mode
         </button>
       </header>
+
+      <UpdateBanner />
 
       {globalAlert && (
         <div className="threat-banner" role="alert">

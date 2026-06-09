@@ -52,4 +52,23 @@ export function openSentinelCare(): void {
   void window.shield.openSentinelCare();
 }
 
+export type UpdateStatus =
+  | { state: "idle" }
+  | { state: "checking" }
+  | { state: "downloading"; percent: number }
+  | { state: "ready"; version: string }
+  | { state: "error" };
+
+export async function getUpdateStatus(): Promise<UpdateStatus> {
+  return (await window.shield.getUpdateStatus()) as UpdateStatus;
+}
+
+export function restartToUpdate(): void {
+  void window.shield.restartToUpdate();
+}
+
+export function subscribeUpdate(callback: (status: UpdateStatus) => void): () => void {
+  return window.shield.onUpdate((status) => callback(status as UpdateStatus));
+}
+
 export { GENERIC_ERROR };

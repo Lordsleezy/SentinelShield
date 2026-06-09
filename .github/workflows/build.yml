@@ -51,7 +51,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SentinelShield-Windows-Installer
-          path: release/*.exe
+          path: |
+            release/*.exe
+            release/latest.yml
           if-no-files-found: error
 
       - name: Publish GitHub Release
@@ -59,7 +61,9 @@ jobs:
         with:
           tag_name: v${{ github.run_number }}
           name: Sentinel Shield v${{ github.run_number }}
-          files: release/*.exe
+          files: |
+            release/*.exe
+            release/latest.yml
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

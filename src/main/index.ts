@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from "electron";
 import path from "path";
 import { SidecarClient } from "./sidecar";
 import { appendLog, getDataDir, initLogger, openLogInNotepad } from "./logger";
+import { getUpdateStatus, initAutoUpdater, restartToUpdate } from "./updater";
 
 const sidecar = new SidecarClient();
 let mainWindow: BrowserWindow | null = null;
@@ -45,6 +46,7 @@ app.whenReady().then(() => {
     }
   });
   createWindow();
+  initAutoUpdater(() => mainWindow);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -93,4 +95,10 @@ ipcMain.handle("shield:openLog", () => {
 
 ipcMain.handle("shield:openSentinelCare", () => {
   void shell.openExternal("https://care.sentinelprime.org");
+});
+
+ipcMain.handle("shield:getUpdateStatus", () => getUpdateStatus());
+
+ipcMain.handle("shield:restartToUpdate", () => {
+  restartToUpdate();
 });

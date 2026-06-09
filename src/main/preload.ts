@@ -6,6 +6,20 @@ contextBridge.exposeInMainWorld("shield", {
   isAdmin: () => ipcRenderer.invoke("shield:isAdmin") as Promise<boolean>,
   openLog: () => ipcRenderer.invoke("shield:openLog") as Promise<void>,
   openSentinelCare: () => ipcRenderer.invoke("shield:openSentinelCare") as Promise<void>,
+  getUpdateStatus: () =>
+    ipcRenderer.invoke("shield:getUpdateStatus") as Promise<{
+      state: "idle" | "checking" | "downloading" | "ready" | "error";
+      percent?: number;
+      version?: string;
+    }>,
+  restartToUpdate: () => ipcRenderer.invoke("shield:restartToUpdate") as Promise<void>,
+  onUpdate: (callback: (status: unknown) => void) => {
+    const handler = (_event: unknown, status: unknown) => callback(status);
+    ipcRenderer.on("shield:update", handler);
+    return () => {
+      ipcRenderer.removeListener("shield:update", handler);
+    };
+  },
   onProgress: (callback: (data: unknown) => void) => {
     const handler = (_event: unknown, data: unknown) => callback(data);
     ipcRenderer.on("shield:progress", handler);

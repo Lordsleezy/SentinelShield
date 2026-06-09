@@ -1,18 +1,42 @@
 # Sentinel Shield — Development Progress
 
 **Date:** 2026-06-08  
-**Status:** Stage 1 complete. **Stage 2 complete.** Stage 3 in progress — Sentinel Care escalation and senior friendly mode shipped; Android companion and app auto-update scoped.
+**Status:** Stage 1 complete. **Stage 2 complete.** **Stage 3 complete** — Sentinel Care, senior mode, app auto-update, and Android companion.
 
 ---
 
-## Stage 3 Summary (In Progress)
+## Stage 3 Summary (Complete)
 
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
 | 1 | Sentinel Care integration | ✅ | `EscalateCareButton` opens `https://care.sentinelprime.org` via `shield:openSentinelCare` IPC |
 | 2 | Senior friendly mode | ✅ | `SeniorMode.tsx` — large text, single **Scan Now**, care escalation on threats/failures |
-| 3 | Android companion app | 📋 Scoped | Spam call blocker, app permission auditor, basic cleaner (not started) |
-| 4 | App auto-update | 📋 Scoped | Self-update for Electron app (YARA rules updater already exists) |
+| 3 | Android companion app | ✅ | `companion/` — Expo app with call screening, permission audit, cleaner |
+| 4 | App auto-update | ✅ | `electron-updater` → GitHub Releases; non-intrusive banner, silent background download |
+
+### App auto-update (`electron-updater`)
+
+- **Provider:** GitHub Releases (`Lordsleezy/SentinelShield`) via `package.json` `build.publish`
+- **On launch:** checks for updates ~5s after window opens (production only)
+- **Behavior:** `autoDownload: true`, `autoInstallOnAppQuit: true` — never forces restart
+- **UI:** `UpdateBanner.tsx` — "Update available — restart to install" with optional **Restart now** / **Later**
+- **CI:** `.github/workflows/build.yml` uploads `latest.yml` + installer (required for updater)
+- **Files:** `src/main/updater.ts`, `UpdateBanner.tsx`, IPC in `preload.ts` / `api.ts`
+
+**Release note:** Bump `version` in `package.json` before each release so `electron-updater` detects a newer build.
+
+### Android companion (`companion/`)
+
+| Tab | Feature | Native module |
+|-----|---------|---------------|
+| Calls | Spam call blocker | `SentinelCallScreeningService` + `RoleManager.ROLE_CALL_SCREENING` |
+| Apps | Permission auditor | Flags non-system apps with 2+ of camera / mic / location |
+| Cleaner | Junk file cleanup | Clears app cache + temp directories |
+
+- **Stack:** React Native + Expo SDK 56, expo-router tabs
+- **Theme:** Dark `#141414` background, teal `#14b8a6` accents, large senior-friendly typography
+- **Native module:** `companion/modules/sentinel-android/` (Kotlin Expo module)
+- **Build:** `npx expo prebuild --platform android` then `npm run android` (see `companion/README.md`)
 
 ### Sentinel Care integration
 
@@ -261,7 +285,8 @@ npm run dev
 
 ## Next Steps
 
-1. **Stage 3:** App auto-update (`electron-updater` or similar) — separate from YARA `rules_updater`
-2. **Stage 3:** Android companion app — spam blocker, permission auditor, cleaner
-3. Test installed `.exe` on a clean Windows x64 machine
+1. Bump `package.json` version and push to `main` to verify end-to-end auto-update from GitHub Releases
+2. Run `npx expo prebuild` in `companion/` and test call screening on a physical Android device
+3. Test installed Windows `.exe` on a clean x64 machine
 4. Consider scan scope selector in UI (Downloads only, Documents only, etc.)
+5. Future: sync threat alerts between Windows Shield and Android companion via shared account
