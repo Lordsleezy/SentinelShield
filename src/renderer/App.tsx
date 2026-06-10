@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { checkAdmin, subscribeEvents } from "./api";
+import { ActivationGate } from "./components/ActivationGate";
 import { EscalateCareButton } from "./components/EscalateCareButton";
 import { SidecarStatusIndicator } from "./components/SidecarStatus";
 import { UpdateBanner } from "./components/UpdateBanner";
@@ -39,6 +40,13 @@ export function App() {
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [globalAlert, setGlobalAlert] = useState<string | null>(null);
   const [showCareEscalation, setShowCareEscalation] = useState(false);
+  const [isActivated, setIsActivated] = useState(() => {
+    try {
+      return localStorage.getItem("sentinel_shield_activated") === "true";
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     checkAdmin().then(setIsAdmin).catch(() => setIsAdmin(false));
@@ -62,6 +70,10 @@ export function App() {
     });
     return unsub;
   }, []);
+
+  if (!isActivated) {
+    return <ActivationGate onActivated={() => setIsActivated(true)} />;
+  }
 
   if (seniorMode) {
     return <SeniorMode onSwitchToStandard={() => setSeniorMode(false)} />;
