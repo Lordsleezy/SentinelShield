@@ -77,6 +77,46 @@ async def create_listing(req: ListRequest):
         raise HTTPException(500, f"Listing failed: {exc}") from exc
 
 
+@app.post("/list-all-approved")
+async def list_all_approved():
+    store = get_store()
+    if not store.configured:
+        raise HTTPException(503, "Supabase not configured")
+
+    approvals = await store.list_unlisted_scout_approvals()
+    processed = 0
+    succeeded = 0
+    failed = 0
+    errors: list[dict[str, str]] = []
+
+    for approval in approvals:
+        processed += 1
+        try:
+            req = {
+                "input": approval.get("url") or approval.get("title", ""),
+                "title": approval.get("title", ""),
+                "url": approval.get("url", ""),
+                "price": approval.get("price"),
+                "source": approval.get("source", ""),
+                "approval_id": approval.get("id", ""),
+                "image": approval.get("image", ""),
+            }
+            await build_listing(req)
+            await store.mark_scout_approval_listed(str(approval.get("id", "")))
+            succeeded += 1
+        except Exception as exc:
+            failed += 1
+            logger.exception("Failed to list approval %s", approval.get("id"))
+            errors.append({"id": str(approval.get("id", "")), "error": str(exc)})
+
+    return {
+        "processed": processed,
+        "succeeded": succeeded,
+        "failed": failed,
+        "errors": errors[:20],
+    }
+
+
 @app.get("/drafts", response_model=list[DraftListing])
 async def list_drafts():
     store = get_store()

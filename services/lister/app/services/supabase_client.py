@@ -120,6 +120,51 @@ class SupabaseStore:
             rows = resp.json()
             return rows[0] if rows else None
 
+    async def list_unlisted_scout_approvals(self) -> list[dict[str, Any]]:
+        if not self.configured:
+            return []
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.get(
+                f"{self.url}/rest/v1/scout_approvals",
+                headers=self.headers,
+                params={
+                    "select": "*",
+                    "listed": "is.false",
+                    "order": "created_at.asc",
+                },
+            )
+            if resp.status_code == 200:
+                return resp.json()
+
+            logger.warning("listed column lookup failed, falling back to approved status: %s", resp.text[:200])
+            fallback = await client.get(
+                f"{self.url}/rest/v1/scout_approvals",
+                headers=self.headers,
+                params={
+                    "select": "*",
+                    "status": "eq.approved",
+                    "order": "created_at.asc",
+                },
+            )
+            fallback.raise_for_status()
+            return fallback.json()
+
+    async def mark_scout_approval_listed(self, approval_id: str) -> bool:
+        if not self.configured or not approval_id:
+            return False
+        payload = {"listed": True, "updated_at": datetime.now(timezone.utc).isoformat()}
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.patch(
+                f"{self.url}/rest/v1/scout_approvals",
+                headers=self.headers,
+                params={"id": f"eq.{approval_id}"},
+                json=payload,
+            )
+            if resp.status_code < 400:
+                return True
+            logger.warning("Could not mark scout approval listed: %s %s", resp.status_code, resp.text[:200])
+            return False
+
     async def list_pending(self) -> list[DraftListing]:
         if not self.configured:
             return []
