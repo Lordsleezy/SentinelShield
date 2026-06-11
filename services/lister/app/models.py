@@ -5,7 +5,13 @@ from pydantic import BaseModel, Field
 
 
 class ListRequest(BaseModel):
-    input: str = Field(..., description="Product name or URL")
+    input: str = Field(default="", description="Product name or URL")
+    title: Optional[str] = None
+    url: Optional[str] = None
+    price: Optional[float] = None
+    source: Optional[str] = None
+    approval_id: Optional[str] = None
+    image: Optional[str] = None
 
 
 class GeneratedListing(BaseModel):

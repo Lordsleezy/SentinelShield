@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: str = ""
     log_file: str = "/opt/sentinel/logs/lister.log"
     port: int = 8002
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://192.168.0.117:3000,https://dashboard.sentinelprime.org"
 
 
 @lru_cache

@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 from typing import Callable
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urljoin
 
 from app.models import DealResult
 
@@ -20,6 +20,14 @@ def _parse_price(text: str) -> float:
             return float(match.group().replace(",", ""))
         except ValueError:
             pass
+    return 0.0
+
+
+def _price_from_text(text: str) -> float:
+    for match in re.finditer(r"\$\s*[\d,]+(?:\.\d{1,2})?", text or ""):
+        price = _parse_price(match.group())
+        if price > 0:
+            return price
     return 0.0
 
 
@@ -84,7 +92,7 @@ async def _scrape_page(context, source: str, url: str, query: str, limit: int) -
         elif source == "craigslist":
             deals = await _parse_craigslist(page, limit)
         elif source == "facebook_marketplace":
-            deals = await _parse_generic_listings(page, source, limit, "a[href*='/marketplace/item/']")
+            deals = await _parse_facebook_marketplace(page, limit)
         else:
             deals = await _parse_generic_listings(page, source, limit, "a[href*='product'], a[href*='item'], .product-card a")
     finally:
@@ -146,6 +154,59 @@ async def _parse_craigslist(page, limit: int) -> list[DealResult]:
                 market_value=price * 1.15,
                 source="craigslist",
                 url=href or "",
+                condition="used",
+            )
+        )
+    return deals
+
+
+async def _parse_facebook_marketplace(page, limit: int) -> list[DealResult]:
+    deals = []
+    selector = "a[href*='/marketplace/item/']"
+    try:
+        await page.wait_for_selector(selector, timeout=10000)
+    except Exception:
+        logger.warning("Facebook Marketplace item selector not found")
+
+    links = await page.query_selector_all(selector)
+    html = await page.content()
+    fallback_prices = [_parse_price(m.group()) for m in re.finditer(r"\$\s*[\d,]+(?:\.\d{1,2})?", html)]
+    fallback_prices = [p for p in fallback_prices if p > 0]
+
+    seen_urls: set[str] = set()
+    for link in links:
+        if len(deals) >= limit:
+            break
+        href = (await link.get_attribute("href")) or ""
+        href = urljoin("https://www.facebook.com", href)
+        if not href or href in seen_urls:
+            continue
+        seen_urls.add(href)
+
+        card = await link.evaluate_handle(
+            """(node) => {
+                let current = node;
+                for (let i = 0; i < 5 && current?.parentElement; i += 1) {
+                    current = current.parentElement;
+                }
+                return current || node;
+            }"""
+        )
+        text = ((await card.as_element().inner_text()) if card.as_element() else await link.inner_text()) or ""
+        title = " ".join(line.strip() for line in text.splitlines() if line.strip() and "$" not in line)
+        price = _price_from_text(text)
+        if price == 0.0 and fallback_prices:
+            price = fallback_prices[min(len(deals), len(fallback_prices) - 1)]
+
+        if not title:
+            title = (await link.inner_text()) or "Facebook Marketplace item"
+        deals.append(
+            DealResult(
+                title=title.strip()[:200],
+                price=price,
+                market_value=price * 1.15 if price else 0.0,
+                source="facebook_marketplace",
+                url=href,
                 condition="used",
             )
         )

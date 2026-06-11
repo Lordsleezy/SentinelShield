@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.logging_setup import setup_logging
@@ -38,6 +39,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+settings = get_settings()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/health")
 async def health():
@@ -55,10 +65,11 @@ async def health():
 
 @app.post("/list", response_model=ListResponse)
 async def create_listing(req: ListRequest):
-    if not req.input.strip():
-        raise HTTPException(400, "input is required")
+    request_data = req.model_dump()
+    if not (req.input or req.url or req.title or "").strip():
+        raise HTTPException(400, "input, url, or title is required")
     try:
-        return await build_listing(req.input)
+        return await build_listing(request_data)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     except Exception as exc:

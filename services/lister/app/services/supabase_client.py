@@ -105,6 +105,21 @@ class SupabaseStore:
             data = resp.json()
             return _to_draft(data[0] if isinstance(data, list) else data)
 
+    async def get_scout_approval_by_url(self, url: str) -> Optional[dict[str, Any]]:
+        if not self.configured or not url:
+            return None
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(
+                f"{self.url}/rest/v1/scout_approvals",
+                headers=self.headers,
+                params={"url": f"eq.{url}", "limit": "1"},
+            )
+            if resp.status_code >= 400:
+                logger.warning("Scout approval lookup failed: %s %s", resp.status_code, resp.text)
+                return None
+            rows = resp.json()
+            return rows[0] if rows else None
+
     async def list_pending(self) -> list[DraftListing]:
         if not self.configured:
             return []
